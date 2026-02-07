@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏎️ Best Boyfriend Racer 💖</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            background: #222;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: #87CEEB;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 10;
+            text-align: center;
+        }
+
+        #boostMeter {
+            margin-top: 10px;
+            height: 20px;
+            background: #ffc0cb;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid #ff69b4;
+        }
+
+        #boostFill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff1493, #ff69b4);
+            transition: width 0.3s;
+            box-shadow: 0 0 10px #ff1493;
+        }
+
+        #startScreen, #endScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 0 #ff1493;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        button {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
+            transition: transform 0.2s;
+            margin: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 20, 147, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .controls {
+            margin-top: 20px;
+            font-size: 12px;
+            line-height: 2;
+            color: #ffc0cb;
+        }
+
+        #endScreen h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        #endScreen p {
+            font-size: 14px;
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff1493;
+            animation: confettiFall 3s linear infinite;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 30px;
+            animation: heartFloat 4s ease-in infinite;
+            pointer-events: none;
+        }
+
+        @keyframes heartFloat {
+            0% { transform: translateY(0) scale(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-500px) scale(1.5); opacity: 0; }
+        }
+
+        #mobileControls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .mobileBtn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            font-size: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            #mobileControls {
+                display: flex;
+            }
+            h1 {
+                font-size: 18px;
+            }
+            button {
+                font-size: 12px;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="hud">
+            <div style="font-size: 14px; color: #ff1493;">💕 LAP: LOVE 1/1 💕</div>
+            <div style="font-size: 10px; margin-top: 5px;">Distance: <span id="distance">0</span>m</div>
+            <div id="boostMeter">
+                <div id="boostFill" style="width: 100%;"></div>
+            </div>
+            <div style="font-size: 8px; margin-top: 5px;">❤️ Boost Meter ❤️</div>
+        </div>
+
+        <div id="startScreen">
+            <h1>🏎️💖 THE KRISH BHATIA RACING GAME 💖🏎️</h1>
+            <p style="font-size: 14px; margin: 20px 0;"> Start this race for a cute suprise my racer boy! <br> <br> Love, Your Manu🏆</p>
+            <button id="startBtn">START RACE 🏁</button>
+            <div class="controls">
+                ⬅️ ➡️ MOVE<br>
+                ⬆️ BOOST (Limited)<br>
+                SPACE Horn 📣
+            </div>
+        </div>
+
+        <div id="endScreen" class="hidden">
+            <h1 id="endTitle"></h1>
+            <p id="endMessage"></p>
+            <button id="replayBtn">RACE AGAIN 💕</button>
+        </div>
+
+        <div id="mobileControls">
+            <button class="mobileBtn" id="leftBtn">⬅️</button>
+            <button class="mobileBtn" id="boostBtn">⬆️</button>
+            <button class="mobileBtn" id="rightBtn">➡️</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game state
+        let gameState = 'start'; // start, playing, ended
+        let gameTime = 0;
+        let raceDistance = 0;
+        const RACE_LENGTH = 1500; // meters
+        
+        // Player
+        const player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 150,
+            width: 50,
+            height: 70,
+            speed: 0,
+            maxSpeed: 8,
+            acceleration: 0.3,
+            friction: 0.95,
+            boostPower: 100,
+            maxBoost: 100,
+            boosting: false,
+            invincible: false,
+            invincibleTime: 0,
+            stunned: false,
+            stunnedTime: 0,
+            horn: false
+        };
+
+        // AI Opponent
+        const opponent = {
+            x: canvas.width / 2 + 50,
+            y: canvas.height - 150,
+            width: 50,
+            height: 70,
+            speed: 5.5,
+            baseSpeed: 5.5,
+            distance: 0,
+            blushing: false,
+            blushTime: 0
+        };
+
+        // Track
+        let trackOffset = 0;
+        let trackSpeed = 0;
+
+        // Power-ups and obstacles
+        let items = [];
+        let itemSpawnTimer = 0;
+
+        // Particles
+        let particles = [];
+
+        // Input
+        const keys = {};
+        
+        // Audio context for sound effects
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Sound effects
+        function playSound(frequency, duration, type = 'sine') {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playBoostSound() {
+            playSound(800, 0.2, 'sawtooth');
+            setTimeout(() => playSound(1000, 0.15, 'sawtooth'), 50);
+        }
+
+        function playCrashSound() {
+            playSound(200, 0.3, 'square');
+        }
+
+        function playHornSound() {
+            playSound(400, 0.15, 'triangle');
+            setTimeout(() => playSound(450, 0.15, 'triangle'), 100);
+        }
+
+        function playVictorySound() {
+            const notes = [523, 587, 659, 698, 784];
+            notes.forEach((note, i) => {
+                setTimeout(() => playSound(note, 0.3, 'sine'), i * 150);
+            });
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ' && gameState === 'playing') {
+                e.preventDefault();
+                player.horn = true;
+                playHornSound();
+                checkHornBlush();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            if (e.key === ' ') player.horn = false;
+        });
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('replayBtn').addEventListener('click', resetGame);
+
+        // Mobile controls
+        document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys['ArrowLeft'] = true;
+        });
+        document.getElementById('leftBtn').addEventListener('touchend', () => keys['ArrowLeft'] = false);
+
+        document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys['ArrowRight'] = true;
+        });
+        document.getElementById('rightBtn').addEventListener('touchend', () => keys['ArrowRight'] = false);
+
+        document.getElementById('boostBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys['ArrowUp'] = true;
+        });
+        document.getElementById('boostBtn').addEventListener('touchend', () => keys['ArrowUp'] = false);
+
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            gameState = 'playing';
+            playSound(600, 0.2);
+            setTimeout(() => playSound(800, 0.3), 200);
+        }
+
+        function resetGame() {
+            location.reload();
+        }
+
+        function checkHornBlush() {
+            const distance = Math.abs(player.x - opponent.x);
+            if (distance < 100 && Math.abs(player.y - opponent.y) < 100) {
+                opponent.blushing = true;
+                opponent.blushTime = 2000;
+            }
+        }
+
+        function spawnItem() {
+            const types = ['mushroom', 'star', 'banana', 'cone', 'oil'];
+            const weights = [25, 5, 20, 30, 20]; // Probabilities
+            
+            let random = Math.random() * 100;
+            let type = types[0];
+            let cumulative = 0;
+            
+            for (let i = 0; i < types.length; i++) {
+                cumulative += weights[i];
+                if (random < cumulative) {
+                    type = types[i];
+                    break;
+                }
+            }
+
+            items.push({
+                type: type,
+                x: Math.random() * (canvas.width - 60) + 30,
+                y: -50,
+                width: 40,
+                height: 40,
+                collected: false
+            });
+        }
+
+        function updatePlayer() {
+            if (player.stunned) {
+                player.stunnedTime -= 16;
+                if (player.stunnedTime <= 0) {
+                    player.stunned = false;
+                }
+                return;
+            }
+
+            // Movement
+            if (keys['ArrowLeft']) {
+                player.x -= 5;
+            }
+            if (keys['ArrowRight']) {
+                player.x += 5;
+            }
+
+            // Boost
+            if (keys['ArrowUp'] && player.boostPower > 0 && !player.boosting) {
+                player.boosting = true;
+                player.boostPower -= 2;
+                trackSpeed = 12;
+                playBoostSound();
+                createSparkles(player.x + player.width / 2, player.y + player.height);
+            } else if (!keys['ArrowUp']) {
+                player.boosting = false;
+                trackSpeed = Math.max(trackSpeed * 0.95, 6);
+            }
+
+            // Boost recharge
+            if (!player.boosting && player.boostPower < player.maxBoost) {
+                player.boostPower += 0.5;
+            }
+
+            // Invincibility
+            if (player.invincible) {
+                player.invincibleTime -= 16;
+                if (player.invincibleTime <= 0) {
+                    player.invincible = false;
+                }
+            }
+
+            // Boundaries
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+
+            // Update distance
+            raceDistance += trackSpeed / 10;
+        }
+
+        function updateOpponent() {
+            // AI behavior
+            opponent.speed = opponent.baseSpeed + Math.sin(gameTime / 1000) * 0.5;
+            
+            // Random mistakes
+            if (Math.random() < 0.002) {
+                opponent.speed *= 0.7;
+            }
+
+            // Slight horizontal movement
+            opponent.x += Math.sin(gameTime / 500) * 2;
+            opponent.x = Math.max(0, Math.min(canvas.width - opponent.width, opponent.x));
+
+            opponent.distance += opponent.speed / 10;
+
+            // Blushing
+            if (opponent.blushing) {
+                opponent.blushTime -= 16;
+                if (opponent.blushTime <= 0) {
+                    opponent.blushing = false;
+                }
+            }
+        }
+
+        function updateItems() {
+            itemSpawnTimer += 16;
+            if (itemSpawnTimer > 800) {
+                spawnItem();
+                itemSpawnTimer = 0;
+            }
+
+            items.forEach((item, index) => {
+                item.y += trackSpeed;
+
+                // Check collision with player
+                if (!item.collected && 
+                    player.x < item.x + item.width &&
+                    player.x + player.width > item.x &&
+                    player.y < item.y + item.height &&
+                    player.y + player.height > item.y) {
+                    
+                    handleItemCollision(item);
+                    item.collected = true;
+                }
+
+                // Remove off-screen items
+                if (item.y > canvas.height + 50) {
+                    items.splice(index, 1);
+                }
+            });
+        }
+
+        function handleItemCollision(item) {
+            if (player.invincible && (item.type === 'banana' || item.type === 'cone' || item.type === 'oil')) {
+                playSound(1000, 0.1);
+                return; // Invincible, ignore obstacles
+            }
+
+            switch(item.type) {
+                case 'mushroom':
+                    player.boostPower = player.maxBoost;
+                    playBoostSound();
+                    createSparkles(item.x, item.y);
+                    break;
+                case 'star':
+                    player.invincible = true;
+                    player.invincibleTime = 3000;
+                    playSound(1200, 0.3);
+                    break;
+                case 'banana':
+                case 'cone':
+                    player.stunned = true;
+                    player.stunnedTime = 1000;
+                    playCrashSound();
+                    trackSpeed *= 0.5;
+                    break;
+                case 'oil':
+                    trackSpeed *= 0.7;
+                    playCrashSound();
+                    break;
+            }
+        }
+
+        function createSparkles(x, y) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 1,
+                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                });
+            }
+        }
+
+        function updateParticles() {
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                
+                if (p.life <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+        }
+
+        function drawRoad() {
+            // Grass background
+            ctx.fillStyle = '#90EE90';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Road
+            ctx.fillStyle = '#555';
+            ctx.fillRect(50, 0, canvas.width - 100, canvas.height);
+
+            // Road lines
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 5;
+            ctx.setLineDash([30, 30]);
+            
+            const lineOffset = trackOffset % 60;
+            for (let i = -60; i < canvas.height; i += 60) {
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, i + lineOffset);
+                ctx.lineTo(canvas.width / 2, i + 30 + lineOffset);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // Finish line (when near end)
+            if (raceDistance > RACE_LENGTH - 200) {
+                const finishY = (RACE_LENGTH - raceDistance) * 3;
+                if (finishY > -100 && finishY < canvas.height) {
+                    ctx.fillStyle = '#fff';
+                    for (let i = 0; i < canvas.width; i += 40) {
+                        ctx.fillRect(i, finishY, 20, 30);
+                    }
+                    ctx.fillStyle = '#000';
+                    for (let i = 20; i < canvas.width; i += 40) {
+                        ctx.fillRect(i, finishY, 20, 30);
+                    }
+                    
+                    ctx.fillStyle = '#ff1493';
+                    ctx.font = '20px "Press Start 2P"';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🏁 FINISH 🏁', canvas.width / 2, finishY + 20);
+                }
+            }
+
+            trackOffset += trackSpeed;
+        }
+
+        function drawKart(x, y, color, name, flipped = false) {
+            ctx.save();
+            ctx.translate(x + 25, y + 35);
+            
+            // Kart body
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.roundRect(-20, -25, 40, 50, 10);
+            ctx.fill();
+            
+            // Wheels
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-25, -15, 8, 15);
+            ctx.fillRect(17, -15, 8, 15);
+            ctx.fillRect(-25, 0, 8, 15);
+            ctx.fillRect(17, 0, 8, 15);
+
+            // Driver (simple circle)
+            ctx.fillStyle = '#fdd';
+            ctx.beginPath();
+            ctx.arc(0, -15, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-6, -17, 4, 4);
+            ctx.fillRect(2, -17, 4, 4);
+
+            // Name tag
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = '8px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText(name, 0, -40);
+
+            ctx.restore();
+        }
+
+        function drawItems() {
+            items.forEach(item => {
+                if (item.collected) return;
+
+                ctx.save();
+                ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
+                
+                switch(item.type) {
+                    case 'mushroom':
+                        // Mushroom
+                        ctx.fillStyle = '#ff6b6b';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.arc(-5, -3, 4, 0, Math.PI * 2);
+                        ctx.arc(5, -3, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#ff6b6b';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🍄', 0, 5);
+                        break;
+                    case 'star':
+                        // Star
+                        ctx.fillStyle = '#ffd700';
+                        ctx.font = '30px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('⭐', 0, 10);
+                        break;
+                    case 'banana':
+                        // Banana
+                        ctx.font = '30px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🍌', 0, 10);
+                        break;
+                    case 'cone':
+                        // Cone
+                        ctx.fillStyle = '#ff8c00';
+                        ctx.font = '30px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🚧', 0, 10);
+                        break;
+                    case 'oil':
+                        // Oil
+                        ctx.fillStyle = '#333';
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, 15, 10, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#666';
+                        ctx.beginPath();
+                        ctx.ellipse(-3, -2, 5, 3, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                }
+                
+                ctx.restore();
+            });
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function drawEffects() {
+            // Player effects
+            if (player.invincible) {
+                ctx.save();
+                ctx.globalAlpha = 0.5;
+                ctx.strokeStyle = `hsl(${gameTime % 360}, 100%, 70%)`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 40, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            if (player.stunned) {
+                ctx.save();
+                ctx.translate(player.x + player.width / 2, player.y - 20);
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('💫', Math.sin(gameTime / 100) * 10, 0);
+                ctx.restore();
+            }
+
+            if (player.horn) {
+                ctx.save();
+                ctx.translate(player.x + player.width / 2, player.y - 30);
+                ctx.font = '25px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('📣', 0, 0);
+                ctx.restore();
+            }
+
+            // Opponent blush
+            if (opponent.blushing) {
+                ctx.save();
+                ctx.fillStyle = '#ff69b4';
+                ctx.globalAlpha = 0.6;
+                ctx.beginPath();
+                ctx.arc(opponent.x + 10, opponent.y + 25, 5, 0, Math.PI * 2);
+                ctx.arc(opponent.x + 40, opponent.y + 25, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                ctx.save();
+                ctx.translate(opponent.x + opponent.width / 2, opponent.y - 30);
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('😳', 0, 0);
+                ctx.restore();
+            }
+        }
+
+        function checkRaceEnd() {
+            if (raceDistance >= RACE_LENGTH || opponent.distance >= RACE_LENGTH) {
+                gameState = 'ended';
+                const playerWon = raceDistance >= opponent.distance;
+                showEndScreen(playerWon);
+            }
+        }
+
+        function showEndScreen(playerWon) {
+            const endScreen = document.getElementById('endScreen');
+            const endTitle = document.getElementById('endTitle');
+            const endMessage = document.getElementById('endMessage');
+
+            endScreen.classList.remove('hidden');
+
+            if (playerWon) {
+                endTitle.textContent = '🏆 WINNER: THE BESTEST BOYFRIEND IN THE WORLD 💕🏎️';
+                endMessage.innerHTML = `
+                    🎊 Fast, Cute, and Unbeatable! My Krish Bhatia 😉❤️<br><br>
+                    You crossed the finish line first my love!<br>
+                    Like how you are first in everything that you do, I am soooo proud of you!! 🏁✨
+                `;
+                playVictorySound();
+                createConfetti();
+                createHeartRain();
+            } else {
+                endTitle.textContent = '💖 STILL THE BEST BOYFRIEND 💖';
+                endMessage.innerHTML = `
+                    Just warming up! 😉<br><br>
+                    Love isn't about winning races,<br>
+                    it's about racing together! 💕
+                `;
+                playSound(400, 0.5);
+            }
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    document.getElementById('endScreen').appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        function createHeartRain() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart';
+                    heart.textContent = '💖';
+                    heart.style.left = Math.random() * 100 + '%';
+                    heart.style.animationDelay = Math.random() * 2 + 's';
+                    document.getElementById('endScreen').appendChild(heart);
+                    setTimeout(() => heart.remove(), 4000);
+                }, i * 200);
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('distance').textContent = Math.floor(raceDistance);
+            document.getElementById('boostFill').style.width = player.boostPower + '%';
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing') {
+                gameTime += 16;
+                
+                updatePlayer();
+                updateOpponent();
+                updateItems();
+                updateParticles();
+                checkRaceEnd();
+                updateHUD();
+            }
+
+            // Draw
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRoad();
+            drawItems();
+            drawParticles();
+            
+            // Draw karts
+            drawKart(player.x, player.y, '#ff1744', 'YOU ❤️');
+            drawKart(opponent.x, opponent.y, '#4caf50', 'Rival 💚');
+            
+            drawEffects();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>
