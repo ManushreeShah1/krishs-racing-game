@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🏎️ KB's custom Racing game 💖</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
@@ -409,6 +409,32 @@
     </div>
 
     <script>
+        // Responsive canvas setup
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const canvas = document.getElementById('gameCanvas');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            // Maintain aspect ratio
+            const aspectRatio = 800 / 600;
+            let newWidth = containerWidth;
+            let newHeight = containerHeight;
+            
+            if (containerWidth / containerHeight > aspectRatio) {
+                newWidth = containerHeight * aspectRatio;
+            } else {
+                newHeight = containerWidth / aspectRatio;
+            }
+            
+            canvas.style.width = newWidth + 'px';
+            canvas.style.height = newHeight + 'px';
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', resizeCanvas);
+        resizeCanvas();
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -470,20 +496,24 @@
 
         // Sound effects
         function playSound(frequency, duration, type = 'sine') {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = frequency;
-            oscillator.type = type;
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + duration);
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (e) {
+                console.log('Audio not available');
+            }
         }
 
         function playBoostSound() {
@@ -526,24 +556,32 @@
         document.getElementById('startBtn').addEventListener('click', startGame);
         document.getElementById('replayBtn').addEventListener('click', resetGame);
 
-        // Mobile controls
-        document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            keys['ArrowLeft'] = true;
-        });
-        document.getElementById('leftBtn').addEventListener('touchend', () => keys['ArrowLeft'] = false);
+        // Mobile controls with proper touch handling
+        function setupMobileControl(btnId, key) {
+            const btn = document.getElementById(btnId);
+            
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                keys[key] = true;
+                if (key === 'ArrowUp' && gameState === 'playing') {
+                    // Trigger boost
+                }
+            });
+            
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                keys[key] = false;
+            });
+            
+            btn.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                keys[key] = false;
+            });
+        }
 
-        document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            keys['ArrowRight'] = true;
-        });
-        document.getElementById('rightBtn').addEventListener('touchend', () => keys['ArrowRight'] = false);
-
-        document.getElementById('boostBtn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            keys['ArrowUp'] = true;
-        });
-        document.getElementById('boostBtn').addEventListener('touchend', () => keys['ArrowUp'] = false);
+        setupMobileControl('leftBtn', 'ArrowLeft');
+        setupMobileControl('rightBtn', 'ArrowRight');
+        setupMobileControl('boostBtn', 'ArrowUp');
 
         function startGame() {
             document.getElementById('startScreen').classList.add('hidden');
@@ -969,9 +1007,9 @@
             endScreen.classList.remove('hidden');
 
             if (playerWon) {
-                endTitle.textContent = '🏆 WINNER: THE BESTEST BOYFRIEND IN THE WORLD 💕🏎️';
+                endTitle.textContent = '🏆 WINNER: THE BESTEST BOYFRIEND IN THE WORLD💕🏎️';
                 endMessage.innerHTML = `
-                    🎊 Fast, Cute, and Unbeatable! My Krish Bhatia 😉❤️<br><br>
+                   🎊 Fast, Cute, and Unbeatable! My Krish Bhatia 😉❤️<br><br>
                     You crossed the finish line first my love!<br>
                     Like how you are first in everything that you do, I am soooo proud of you, I love you so much!! 🏁✨
                 `;
@@ -983,7 +1021,7 @@
                 endMessage.innerHTML = `
                     Just warming up! 😉<br><br>
                     Love isn't about winning races,<br>
-                    it's about racing together! 💕
+                    it's about racing together! And I am so glad that you are my partner in all races of life💕
                 `;
                 playSound(400, 0.5);
             }
@@ -1051,10 +1089,13 @@
 
         // Start game loop
         gameLoop();
+
+        // Prevent pull-to-refresh on mobile
+        document.body.addEventListener('touchmove', function(e) {
+            if (gameState === 'playing') {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>
-
-
-
-
