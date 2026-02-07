@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏎️ KB's custom Racing game 💖</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -20,6 +22,11 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            padding: 0;
+            margin: 0;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
 
         #gameContainer {
@@ -28,33 +35,41 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             overflow: hidden;
+            width: 100%;
+            height: 100%;
+            max-width: 800px;
+            max-height: 600px;
         }
 
         #gameCanvas {
             display: block;
             background: #87CEEB;
+            width: 100%;
+            height: 100%;
         }
 
         #hud {
             position: absolute;
-            top: 20px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
-            padding: 15px 30px;
-            border-radius: 20px;
+            padding: 10px 20px;
+            border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             z-index: 10;
             text-align: center;
+            max-width: 90%;
         }
 
         #boostMeter {
-            margin-top: 10px;
-            height: 20px;
+            margin-top: 8px;
+            height: 15px;
             background: #ffc0cb;
             border-radius: 10px;
             overflow: hidden;
-            border: 3px solid #ff69b4;
+            border: 2px solid #ff69b4;
+            min-width: 150px;
         }
 
         #boostFill {
@@ -79,6 +94,7 @@
             text-align: center;
             z-index: 100;
             padding: 20px;
+            overflow-y: auto;
         }
 
         .hidden {
@@ -90,6 +106,7 @@
             margin-bottom: 30px;
             text-shadow: 3px 3px 0 #ff1493;
             animation: pulse 1s infinite;
+            line-height: 1.4;
         }
 
         @keyframes pulse {
@@ -109,6 +126,7 @@
             box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
             transition: transform 0.2s;
             margin: 10px;
+            touch-action: manipulation;
         }
 
         button:hover {
@@ -166,12 +184,13 @@
 
         #mobileControls {
             position: absolute;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: none;
-            gap: 20px;
+            gap: 15px;
             z-index: 10;
+            flex-wrap: nowrap;
         }
 
         .mobileBtn {
@@ -183,18 +202,172 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
+        /* Mobile optimizations for all phones */
         @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+
+            #gameContainer {
+                border-radius: 0;
+                max-width: 100%;
+                max-height: 100%;
+            }
+
             #mobileControls {
                 display: flex;
+                bottom: 15px;
+                gap: 10px;
             }
+
+            .mobileBtn {
+                width: 65px;
+                height: 65px;
+                font-size: 28px;
+            }
+
+            #hud {
+                top: 5px;
+                padding: 8px 15px;
+                font-size: 10px;
+            }
+
+            #hud > div:first-child {
+                font-size: 11px !important;
+            }
+
+            #hud > div:nth-child(2) {
+                font-size: 8px !important;
+            }
+
+            #hud > div:last-child {
+                font-size: 7px !important;
+            }
+
+            #boostMeter {
+                height: 12px;
+                margin-top: 5px;
+                min-width: 120px;
+            }
+
             h1 {
-                font-size: 18px;
+                font-size: 16px;
+                margin-bottom: 20px;
             }
+
             button {
                 font-size: 12px;
+                padding: 12px 24px;
+            }
+
+            .controls {
+                font-size: 10px;
+                line-height: 1.8;
+            }
+
+            #endScreen h1 {
+                font-size: 18px;
+            }
+
+            #endScreen p {
+                font-size: 11px;
+                line-height: 1.6;
+            }
+        }
+
+        /* Small phones (iPhone SE, small Androids) */
+        @media (max-width: 400px) {
+            .mobileBtn {
+                width: 55px;
+                height: 55px;
+                font-size: 24px;
+            }
+
+            #mobileControls {
+                gap: 8px;
+                bottom: 10px;
+            }
+
+            h1 {
+                font-size: 14px;
+                margin-bottom: 15px;
+            }
+
+            button {
+                font-size: 10px;
                 padding: 10px 20px;
+            }
+
+            #hud {
+                padding: 6px 12px;
+            }
+
+            #boostMeter {
+                min-width: 100px;
+                height: 10px;
+            }
+        }
+
+        /* Landscape mode optimization */
+        @media (max-height: 500px) and (orientation: landscape) {
+            #hud {
+                top: 5px;
+                padding: 5px 10px;
+                font-size: 8px;
+            }
+
+            #hud > div:first-child {
+                font-size: 9px !important;
+            }
+
+            #boostMeter {
+                height: 10px;
+                margin-top: 3px;
+            }
+
+            #mobileControls {
+                bottom: 10px;
+                gap: 12px;
+            }
+
+            .mobileBtn {
+                width: 50px;
+                height: 50px;
+                font-size: 22px;
+            }
+
+            h1 {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+
+            button {
+                font-size: 10px;
+                padding: 8px 16px;
+                margin: 5px;
+            }
+
+            .controls {
+                font-size: 8px;
+                line-height: 1.5;
+                margin-top: 10px;
+            }
+
+            #endScreen p {
+                font-size: 10px;
+                margin: 10px 0;
+            }
+        }
+
+        /* Samsung-specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            #gameContainer {
+                -webkit-overflow-scrolling: touch;
             }
         }
     </style>
@@ -882,5 +1055,6 @@
     </script>
 </body>
 </html>
+
 
 
